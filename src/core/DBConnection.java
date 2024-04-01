@@ -37,7 +37,7 @@ public class DBConnection {
                 instance = new DBConnection();
             }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());;
+            System.out.println(e.getMessage());
         }
 
         return instance.getConnection();
