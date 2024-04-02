@@ -43,14 +43,15 @@ CREATE TABLE bookings (
     status text NOT NULL,
     note text,
     PRIMARY KEY (booking_id),
-    FOREIGN KEY (car_id) REFERENCES cars(car_id),
-
+    FOREIGN KEY (car_id) REFERENCES cars(car_id)
 );
 
 CREATE TABLE users (
     user_id int NOT NULL,
     username text NOT NULL,
-    password text NOT NOT,
+    password text NOT NULL,
     role text NOT NULL,
     PRIMARY KEY (user_id)
-)
+);
+
+INSERT INTO users(user_id, username, password, role) VALUES (1, 'admin', 'admin', 'admin');
