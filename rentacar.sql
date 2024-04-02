@@ -55,3 +55,4 @@ CREATE TABLE users (
 );
 
 INSERT INTO users(user_id, username, password, role) VALUES (1, 'admin', 'admin', 'admin');
+INSERT INTO brands(brand_id, name) VALUES (1, 'Renault');
