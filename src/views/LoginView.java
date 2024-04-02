@@ -5,8 +5,9 @@ import core.Helper;
 import entities.User;
 
 import javax.swing.*;
+import java.util.Objects;
 
-public class LoginView extends JFrame {
+public class LoginView extends ViewLayout {
     private JPanel container;
     private JPanel container_top;
     private JLabel label_logo;
@@ -21,11 +22,7 @@ public class LoginView extends JFrame {
 
     public LoginView() {
         this.add(container);
-        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        this.setTitle("Rent a Car");
-        this.setSize(400, 600);
-        this.setLocation(Helper.getCenter(this.getSize()));
-        this.setVisible(true);
+        this.layoutView(400, 600);
         this.userManager = new UserManager();
 
         button_login.addActionListener(e -> {
@@ -38,14 +35,17 @@ public class LoginView extends JFrame {
                 );
             } else {
                 User loggedInUser = this.userManager.login(this.field_username.getText(), this.field_password.getText());
-                if(loggedInUser == null){
+                if (loggedInUser == null) {
                     JOptionPane.showMessageDialog(
                             null,
                             "User not found!",
                             "Error",
                             JOptionPane.WARNING_MESSAGE
                     );
-                }else {
+                } else if (Objects.equals(loggedInUser.getUsername(), "admin")) {
+                    AdminView adminView = new AdminView(loggedInUser);
+                    dispose();
+                } else {
                     System.out.println(loggedInUser.toString());
                 }
             }

@@ -23,6 +23,7 @@ public class UserDao {
             ResultSet resultSet = this.connection.createStatement().executeQuery(query);
             while (resultSet.next()) {
                 User user = this.match(resultSet);
+                users.add(user);
             }
         } catch (SQLException e) {
             e.printStackTrace();
