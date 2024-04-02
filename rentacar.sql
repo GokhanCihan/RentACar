@@ -31,20 +31,12 @@ CREATE TABLE cars (
     FOREIGN KEY (model_id) REFERENCES models(model_id)
 );
 
-CREATE TABLE customers (
-    customer_id int NOT NULL,
-    full_name text NOT NULL,
-    phone int NOT NULL,
-    email text NOT NULL,
-    username text NOT NULL,
-    user_password text NOT NULL,
-    PRIMARY KEY (customer_id)
-);
-
 CREATE TABLE bookings (
     booking_id int NOT NULL,
     car_id int NOT NULL,
-    customer_id int NOT NULL,
+    name text NOT NULL,
+    phone int NOT NULL,
+    email text NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     price int NOT NULL,
@@ -52,5 +44,13 @@ CREATE TABLE bookings (
     note text,
     PRIMARY KEY (booking_id),
     FOREIGN KEY (car_id) REFERENCES cars(car_id),
-    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+
 );
+
+CREATE TABLE users (
+    user_id int NOT NULL,
+    username text NOT NULL,
+    password text NOT NOT,
+    role text NOT NULL,
+    PRIMARY KEY (user_id)
+)
