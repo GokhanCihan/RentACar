@@ -27,21 +27,11 @@ public class LoginView extends ViewLayout {
 
         button_login.addActionListener(e -> {
             if (Helper.isEmpty(this.field_username) || Helper.isEmpty(this.field_password)) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Please fill all necessary fields to log in!",
-                        "Caution",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+                Helper.showDialog("emptyField");
             } else {
                 User loggedInUser = this.userManager.login(this.field_username.getText(), this.field_password.getText());
                 if (loggedInUser == null) {
-                    JOptionPane.showMessageDialog(
-                            null,
-                            "User not found!",
-                            "Error",
-                            JOptionPane.WARNING_MESSAGE
-                    );
+                   Helper.showDialog("notFound");
                 } else if (Objects.equals(loggedInUser.getUsername(), "admin")) {
                     AdminView adminView = new AdminView(loggedInUser);
                     dispose();
