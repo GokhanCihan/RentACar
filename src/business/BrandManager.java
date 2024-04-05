@@ -3,14 +3,17 @@ package business;
 import core.Helper;
 import dao.BrandDao;
 import entities.Brand;
+import entities.Model;
 
 import java.util.ArrayList;
 
 public class BrandManager {
     private final BrandDao brandDao;
+    private final ModelManager modelManager;
 
     public BrandManager() {
         this.brandDao = new BrandDao();
+        this.modelManager = new ModelManager();
     }
 
     public ArrayList<Object[]> getRowsForTable(int size) {
@@ -34,7 +37,7 @@ public class BrandManager {
     }
 
     public boolean update(Brand brand) {
-        return this.brandDao.save(brand);
+        return this.brandDao.update(brand);
     }
 
     public boolean delete(int id) {
@@ -42,7 +45,9 @@ public class BrandManager {
             Helper.showDialog("notFound");
             return false;
         }
-
+        for (Model model: this.modelManager.getModelsByBrandId(id)){
+            this.modelManager.delete(model.getId());
+        }
         return this.brandDao.delete(id);
     }
 

@@ -30,6 +30,10 @@ public class ModelDao {
         return models;
     }
 
+    public ArrayList<Model> getModelsByBrandId(int brandId) {
+        return this.selectByQuery("SELECT * FROM public.models WHERE brand_id = " + brandId);
+    }
+
     public ArrayList<Model> findAll() {
         return this.selectByQuery("SELECT * FROM public.models ORDER BY model_id ASC");
     }
@@ -58,14 +62,14 @@ public class ModelDao {
         return true;
     }
 
-    public boolean save(Model model) {
+    public boolean update(Model model) {
         String query = "UPDATE public.models SET " +
-                "brand_id = ?" +
-                "name = ?" +
-                "release_year = ?" +
-                "body_type = ?" +
-                "fuel_type = ?" +
-                "gear_type = ?" +
+                "brand_id = ?, " +
+                "name = ?, " +
+                "release_year = ?, " +
+                "body_type = ?, " +
+                "fuel_type = ?, " +
+                "gear_type = ? " +
                 "WHERE model_id = ?";
         try {
             PreparedStatement preparedStatement = this.connection.prepareStatement(query);

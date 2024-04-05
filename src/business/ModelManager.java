@@ -39,7 +39,7 @@ public class ModelManager {
     }
 
     public boolean update(Model model) {
-        return this.modelDao.save(model);
+        return this.modelDao.update(model);
     }
 
     public boolean delete(int id){
@@ -47,11 +47,14 @@ public class ModelManager {
             Helper.showDialog("notFound");
             return false;
         }
-
         return this.modelDao.delete(id);
     }
 
     public Model getById(int id) {
         return this.modelDao.getById(id);
+    }
+
+    public ArrayList<Model> getModelsByBrandId(int brandId) {
+        return this.modelDao.getModelsByBrandId(brandId);
     }
 }

@@ -43,7 +43,7 @@ public class BrandDao {
         return true;
     }
 
-    public boolean save(Brand brand) {
+    public boolean update(Brand brand) {
         String query = "UPDATE public.brands SET name = ? WHERE brand_id = ? ";
         try {
             PreparedStatement preparedStatement = this.connection.prepareStatement(query);
@@ -91,4 +91,5 @@ public class BrandDao {
         }
         return brand;
     }
+
 }

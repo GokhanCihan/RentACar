@@ -8,6 +8,15 @@ public class Helper {
         return field.getText().trim().isEmpty();
     }
 
+    public static boolean isEmptyAny(JTextField[] fields) {
+        for (JTextField field: fields) {
+            if (isEmpty(field)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static Point getCenter(Dimension size) {
         int x = (Toolkit.getDefaultToolkit().getScreenSize().width - size.width) / 2;
         int y = (Toolkit.getDefaultToolkit().getScreenSize().height - size.height) / 2;

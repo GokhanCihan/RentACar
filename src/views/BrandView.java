@@ -22,7 +22,6 @@ public class BrandView extends ViewLayout{
         this.layoutView(500, 200);
 
         if (brand != null) {
-
             this.field_brand_name.setText(brand.getName());
         }
 
@@ -32,7 +31,6 @@ public class BrandView extends ViewLayout{
             }else {
                 boolean result;
                 if(this.brand == null) {
-
                     result = this.brandManager.add(new Brand(field_brand_name.getText()));
                 } else {
                     this.brand.setName(field_brand_name.getText());
@@ -43,6 +41,7 @@ public class BrandView extends ViewLayout{
                     dispose();
                 }else {
                     Helper.showDialog("error");
+                    dispose();
                 }
             }
         });
