@@ -8,7 +8,6 @@ import entities.CBoxItem;
 import entities.Model;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicSliderUI;
 
 public class ModelView extends ViewLayout {
 
@@ -37,7 +36,7 @@ public class ModelView extends ViewLayout {
         this.modelManager = new ModelManager();
         this.brandManager = new BrandManager();
         this.add(container);
-        this.layoutView(500, 200);
+        this.layoutView(500, 600);
 
         for (Brand brand : this.brandManager.findAll()) {
             this.cbox_brand.addItem(new CBoxItem(brand.getId(), brand.getName()));

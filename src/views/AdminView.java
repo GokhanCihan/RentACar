@@ -3,13 +3,14 @@ package views;
 import business.BrandManager;
 import business.ModelManager;
 import core.Helper;
+import entities.Brand;
+import entities.CBoxItem;
 import entities.Model;
 import entities.User;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 public class AdminView extends ViewLayout {
@@ -24,6 +25,17 @@ public class AdminView extends ViewLayout {
     private JPanel panel_models;
     private JScrollPane scroll_pane_models;
     private JTable table_models;
+    private JPanel container_filter;
+    private JLabel label_filter_brand;
+    private JComboBox<CBoxItem> cbox_filter_brand;
+    private JLabel label_filter_body;
+    private JComboBox<Model.BodyType> cbox_filter_body;
+    private JLabel label_filter_fuel;
+    private JComboBox<Model.FuelType> cbox_filter_fuel;
+    private JLabel label_filter_gear;
+    private JComboBox<Model.GearType> cbox_filter_gear;
+    private JButton button_filter;
+    private JButton button_reset;
     private final User user;
     private final DefaultTableModel table_model_brand = new DefaultTableModel();
     private final DefaultTableModel table_model_model = new DefaultTableModel();
@@ -31,19 +43,22 @@ public class AdminView extends ViewLayout {
     private final ModelManager modelManager = new ModelManager();
     private JPopupMenu popup_menu_brands = new JPopupMenu();
     private JPopupMenu popup_menu_models = new JPopupMenu();
+    private  ArrayList<Model> models;
 
     public AdminView(User user) {
         this.add(container);
+        this.container_filter.setVisible(false);
         this.layoutView(1000, 400);
         this.user = user;
         if (this.user == null) {
             dispose();
         }
         this.label_welcome.setText("Welcome " + this.user.getUsername() + "!");
+        configureBrandsPanel();
+        configureModelsPanel();
         loadBrandsTable();
         loadModelsTable();
-        configureBrandsMenu();
-        configureModelsMenu();
+        configureFilters();
     }
 
     private void loadBrandsTable() {
@@ -53,12 +68,22 @@ public class AdminView extends ViewLayout {
     }
 
     private void loadModelsTable() {
-        Object[] columns = { "Model ID", "Brand", "Model", "Release Year", "Body Type", "Fuel Type", "Gear Type"};
-        ArrayList<Object[]> models = this.modelManager.getRowsForTable(columns.length);
-        this.createTable(this.table_model_model, this.table_models, columns, models);
+        Object[] columns = {"Model ID", "Brand", "Model", "Release Year", "Body Type", "Fuel Type", "Gear Type"};
+        ArrayList<Object[]> rows = this.modelManager.getRowsForTable(columns.length);
+        this.createTable(this.table_model_model, this.table_models, columns, rows);
     }
 
-    private void configureBrandsMenu() {
+    private void setFiltersVisibleAt(JPanel panel_brands, boolean aFlag) {
+        panel_brands.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                container_filter.setVisible(aFlag);
+            }
+        });
+    }
+
+    private void configureBrandsPanel() {
+        setFiltersVisibleAt(this.panel_brands, false);
         this.listenRowSelectionAt(table_brands);
         this.popup_menu_brands.add("Add").addActionListener(e -> {
             BrandView brandView = new BrandView(null);
@@ -82,12 +107,12 @@ public class AdminView extends ViewLayout {
             });
         });
         this.popup_menu_brands.add("Delete").addActionListener(e -> {
-            if (Helper.confirmDelete()){
+            if (Helper.confirmDelete()) {
                 int selectedId = getIdAtSelectedRow(table_brands, 0);
                 if (this.brandManager.delete(selectedId)) {
                     loadBrandsTable();
                     loadModelsTable();
-                }else {
+                } else {
                     Helper.showDialog("error");
                 }
             }
@@ -95,7 +120,8 @@ public class AdminView extends ViewLayout {
         this.table_brands.setComponentPopupMenu(popup_menu_brands);
     }
 
-    private void configureModelsMenu() {
+    private void configureModelsPanel() {
+        setFiltersVisibleAt(this.panel_models, true);
         this.listenRowSelectionAt(table_models);
         this.popup_menu_models.add("Add").addActionListener(e -> {
             ModelView modelView = new ModelView(new Model(), e.getActionCommand());
@@ -117,16 +143,41 @@ public class AdminView extends ViewLayout {
             });
         });
         this.popup_menu_models.add("Delete").addActionListener(e -> {
-            if (Helper.confirmDelete()){
+            if (Helper.confirmDelete()) {
                 int selectedId = getIdAtSelectedRow(table_models, 0);
                 if (this.modelManager.delete(selectedId)) {
                     loadModelsTable();
                     Helper.showDialog("success");
-                }else {
+                } else {
                     Helper.showDialog("error");
                 }
             }
         });
         this.table_models.setComponentPopupMenu(popup_menu_models);
+    }
+
+    private void configureFilters() {
+        for (Brand brand : this.brandManager.findAll()) {
+            this.cbox_filter_brand.addItem(new CBoxItem(brand.getId(), brand.getName()));
+        }
+        this.cbox_filter_body.setModel(new DefaultComboBoxModel<>(Model.BodyType.values()));
+        this.cbox_filter_fuel.setModel(new DefaultComboBoxModel<>(Model.FuelType.values()));
+        this.cbox_filter_gear.setModel(new DefaultComboBoxModel<>(Model.GearType.values()));
+
+
+        this.button_filter.addActionListener(e -> {
+            int selectedId = ((CBoxItem) cbox_filter_brand.getModel().getSelectedItem()).getKey();
+            String bodyType = cbox_filter_body.getModel().getSelectedItem().toString();
+            String fuelType = cbox_filter_fuel.getModel().getSelectedItem().toString();
+            String gearType = cbox_filter_gear.getModel().getSelectedItem().toString();
+            this.models = this.modelManager.filterModels(selectedId, bodyType, fuelType, gearType);
+            Object[] columns = {"Model ID", "Brand", "Model", "Release Year", "Body Type", "Fuel Type", "Gear Type"};
+            ArrayList<Object[]> rows = this.modelManager.getUpdatedRowsForTable(columns.length, this.models);
+            this.createTable(this.table_model_model, this.table_models, columns, rows);
+        });
+
+        this.button_reset.addActionListener(e -> {
+           loadModelsTable();
+        });
     }
 }

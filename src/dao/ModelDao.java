@@ -21,7 +21,8 @@ public class ModelDao {
         ArrayList<Model> models = new ArrayList<>();
         try {
             ResultSet resultSet = this.connection.createStatement().executeQuery(query);
-            while (resultSet.next()){
+
+            while (resultSet.next()) {
                 models.add(this.match(resultSet));
             }
         } catch (SQLException e) {
@@ -81,7 +82,7 @@ public class ModelDao {
             preparedStatement.setString(6, model.getGearType().toString());
             preparedStatement.setInt(7, model.getId());
             return preparedStatement.executeUpdate() != -1;
-        }catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return true;
@@ -126,5 +127,14 @@ public class ModelDao {
             e.printStackTrace();
         }
         return model;
+    }
+
+    public ArrayList<Model> filterModels(Integer brandId, String bodyType, String fuelType, String gearType) {
+
+        String query = "SELECT * FROM public.models WHERE brand_id = '" + brandId +
+                "' AND body_type = '" + bodyType +
+                "' AND fuel_type = '" + fuelType +
+                "' AND gear_type = '" + gearType + "'";
+        return selectByQuery(query);
     }
 }

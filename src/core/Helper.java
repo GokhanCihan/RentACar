@@ -17,6 +17,8 @@ public class Helper {
         return false;
     }
 
+
+
     public static Point getCenter(Dimension size) {
         int x = (Toolkit.getDefaultToolkit().getScreenSize().width - size.width) / 2;
         int y = (Toolkit.getDefaultToolkit().getScreenSize().height - size.height) / 2;
