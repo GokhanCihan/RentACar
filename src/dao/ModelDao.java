@@ -130,7 +130,6 @@ public class ModelDao {
     }
 
     public ArrayList<Model> filterModels(Integer brandId, String bodyType, String fuelType, String gearType) {
-
         String query = "SELECT * FROM public.models WHERE brand_id = '" + brandId +
                 "' AND body_type = '" + bodyType +
                 "' AND fuel_type = '" + fuelType +
