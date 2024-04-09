@@ -27,9 +27,9 @@ public class ViewLayout extends JFrame {
         this.setVisible(true);
     }
 
-    public void createTable(DefaultTableModel model, JTable table, Object[] columns, ArrayList<Object[]> rows) {
-        model.setColumnIdentifiers(columns);
-        table.setModel(model);
+    public void createTable(DefaultTableModel tableModel, JTable table, Object[] columns, ArrayList<Object[]> rows) {
+        tableModel.setColumnIdentifiers(columns);
+        table.setModel(tableModel);
         table.getTableHeader().setReorderingAllowed(false);
         table.getColumnModel().getColumn(0).setMaxWidth(75);
         table.setEnabled(false);
@@ -42,7 +42,7 @@ public class ViewLayout extends JFrame {
         }
 
         for (Object[] row: rows){
-            model.addRow(row);
+            tableModel.addRow(row);
         }
     }
 
@@ -50,7 +50,7 @@ public class ViewLayout extends JFrame {
         return  Integer.parseInt(table.getValueAt(table.getSelectedRow(), column).toString());
     }
 
-    public void listenRowSelectionAt(JTable table) {
+    public void listenRowSelection(JTable table) {
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {

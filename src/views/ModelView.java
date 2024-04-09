@@ -26,9 +26,9 @@ public class ModelView extends ViewLayout {
     private JComboBox<Model.FuelType> cbox_fuel_type;
     private JComboBox<Model.GearType> cbox_gear_type;
     private JComboBox<CBoxItem> cbox_brand;
-    private Model model;
-    private ModelManager modelManager;
-    private BrandManager brandManager;
+    private final Model model;
+    private final ModelManager modelManager;
+    private final BrandManager brandManager;
 
     public ModelView(Model model, String action) {
         this.setAction(action);

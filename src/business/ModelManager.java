@@ -47,7 +47,7 @@ public class ModelManager {
         return modelRows;
     }
 
-    private ArrayList<Model> findAll() {
+    public ArrayList<Model> findAll() {
         return this.modelDao.findAll();
     }
 
