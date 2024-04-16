@@ -19,6 +19,7 @@ public class BookingManager {
             Object[] rowObject = new Object[size];
             int i = 0;
             rowObject[i++] = booking.getId();
+            rowObject[i++] = booking.getCarId();
             rowObject[i++] = booking.getCustomerName();
             rowObject[i++] = booking.getPhone();
             rowObject[i++] = booking.getEmail();
@@ -52,7 +53,7 @@ public class BookingManager {
         return this.bookingDao.delete(id);
     }
 
-    private Booking getById(int id) {
+    public Booking getById(int id) {
         return this.bookingDao.getById(id);
     }
 }

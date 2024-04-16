@@ -23,7 +23,7 @@ public class DBConnection {
             );
         } catch (
                 SQLException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -37,7 +37,7 @@ public class DBConnection {
                 instance = new DBConnection();
             }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
         return instance.getConnection();

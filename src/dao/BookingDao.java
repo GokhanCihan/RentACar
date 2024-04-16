@@ -109,7 +109,7 @@ public class BookingDao {
         try {
             booking.setId(resultSet.getInt("booking_id"));
             booking.setCarId(resultSet.getInt("car_id"));
-            booking.setCustomerName(resultSet.getString("customer_name"));
+            booking.setCustomerName(resultSet.getString("name"));
             booking.setPhone(resultSet.getString("phone"));
             booking.setEmail(resultSet.getString("email"));
             booking.setStartDate(resultSet.getDate("start_date").toLocalDate());

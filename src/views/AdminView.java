@@ -1,5 +1,6 @@
 package views;
 
+import business.BookingManager;
 import business.BrandManager;
 import business.CarManager;
 import business.ModelManager;
@@ -10,6 +11,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 public class AdminView extends ViewLayout {
     private JPanel container;
@@ -37,21 +40,36 @@ public class AdminView extends ViewLayout {
     private JPanel panel_cars;
     private JTable table_cars;
     private JScrollPane scroll_pane_cars;
+    private JPanel panel_booking;
+    private JScrollPane scroll_pane_booking;
+    private JTable table_booking;
+    private JPanel container_filter_booking;
+    private JComboBox<Model.BodyType> cbox_body_type;
+    private JComboBox<Model.FuelType> cbox_fuel_type;
+    private JComboBox<Model.GearType> cbox_gear_type;
+    private JSpinner spinner_start_day;
+    private JSpinner spinner_end_day;
+    private JSpinner spinner_start_month;
+    private JSpinner spinner_start_year;
+    private JSpinner spinner_end_month;
+    private JSpinner spinner_end_year;
     private final User user;
     private final DefaultTableModel table_model_brand = new DefaultTableModel();
     private final DefaultTableModel table_model_model = new DefaultTableModel();
     private final DefaultTableModel table_model_car = new DefaultTableModel();
+    private final DefaultTableModel table_model_booking = new DefaultTableModel();
     private final BrandManager brandManager = new BrandManager();
     private final ModelManager modelManager = new ModelManager();
     private final CarManager carManager = new CarManager();
+    private final BookingManager bookingManager = new BookingManager();
     private final JPopupMenu popup_menu_brands = new JPopupMenu();
     private final JPopupMenu popup_menu_models = new JPopupMenu();
     private final JPopupMenu popup_menu_cars = new JPopupMenu();
+    private final JPopupMenu popup_menu_bookings = new JPopupMenu();
     private  ArrayList<Model> models;
 
     public AdminView(User user) {
         this.add(container);
-        this.container_filter.setVisible(false);
         this.layoutView(1000, 400);
         this.user = user;
         if (this.user == null) {
@@ -61,10 +79,14 @@ public class AdminView extends ViewLayout {
         configureBrandsPanel();
         configureModelsPanel();
         configureCarsPanel();
+        configureBookingsPanel();
+        configureModelsFilter();
         loadBrandsTable();
         loadModelsTable();
         loadCarsTable();
-        configureFilters();
+        loadBookingTable();
+
+        configureBookingFilters();
     }
 
     private void loadBrandsTable() {
@@ -86,8 +108,14 @@ public class AdminView extends ViewLayout {
         this.createTable(this.table_model_car, this.table_cars, columns, rows);
     }
 
+    private void loadBookingTable() {
+        Object[] columns = {"ID", "Car", "Customer", "Phone", "Email", "Start Date", "End Date",
+                "Price", "Status", "Notes"};
+        ArrayList<Object[]> rows = this.bookingManager.getRowsForTable(columns.length);
+        this.createTable(this.table_model_booking, this.table_booking, columns, rows);
+    }
+
     private void configureBrandsPanel() {
-        setFiltersVisibleAt(this.panel_brands, false);
         this.listenRowSelection(table_brands);
         this.popup_menu_brands.add("Add").addActionListener(e -> {
             BrandView brandView = new BrandView(null);
@@ -128,7 +156,6 @@ public class AdminView extends ViewLayout {
     }
 
     private void configureModelsPanel() {
-        setFiltersVisibleAt(this.panel_models, true);
         this.listenRowSelection(table_models);
         this.popup_menu_models.add("Add").addActionListener(e -> {
             ModelView modelView = new ModelView(new Model(), e.getActionCommand());
@@ -166,7 +193,6 @@ public class AdminView extends ViewLayout {
     }
 
     private void configureCarsPanel() {
-        setFiltersVisibleAt(this.panel_cars, false);
         this.listenRowSelection(table_cars);
         this.popup_menu_cars.add("Add").addActionListener(e -> {
             CarView carView = new CarView(new Car(), e.getActionCommand());
@@ -201,7 +227,50 @@ public class AdminView extends ViewLayout {
         this.table_cars.setComponentPopupMenu(popup_menu_cars);
     }
 
-    private void configureFilters() {
+    private void configureBookingsPanel() {
+        this.listenRowSelection(table_booking);
+        this.popup_menu_bookings.add("Add").addActionListener(e -> {
+            BookingView bookingView = new BookingView(new Booking(), e.getActionCommand());
+            bookingView.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    loadBrandsTable();
+                    loadModelsTable();
+                    loadCarsTable();
+                    loadBookingTable();
+                }
+            });
+        });
+        this.popup_menu_bookings.add("Edit").addActionListener(e -> {
+            int selectedId = this.getIdAtSelectedRow(table_booking, 0);
+            BookingView bookingView = new BookingView(this.bookingManager.getById(selectedId), e.getActionCommand());
+            bookingView.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    loadBrandsTable();
+                    loadModelsTable();
+                    loadCarsTable();
+                    loadBookingTable();
+                }
+            });
+        });
+        this.popup_menu_bookings.add("Delete").addActionListener(e -> {
+            if (Helper.confirmDelete()) {
+                int selectedId = getIdAtSelectedRow(table_booking, 0);
+                if (this.bookingManager.delete(selectedId)) {
+                    loadBrandsTable();
+                    loadModelsTable();
+                    loadCarsTable();
+                    loadBookingTable();
+                } else {
+                    Helper.showDialog("error");
+                }
+            }
+        });
+        this.table_booking.setComponentPopupMenu(popup_menu_bookings);
+    }
+
+    private void configureModelsFilter() {
         for (Brand brand : this.brandManager.findAll()) {
             this.cbox_filter_brand.addItem(new CBoxItem(brand.getId(), brand.getName()));
         }
@@ -223,12 +292,13 @@ public class AdminView extends ViewLayout {
         });
     }
 
-    private void setFiltersVisibleAt(JPanel panel, boolean aFlag) {
-        panel.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentShown(ComponentEvent e) {
-                container_filter.setVisible(aFlag);
-            }
-        });
+    private void configureBookingFilters() {
+
+        this.spinner_start_day.setModel(new SpinnerDateModel());
+        this.spinner_start_day.setEditor(new JSpinner.DateEditor(this.spinner_end_day,"dd.MM.yyyy"));
+        this.spinner_start_month.setModel(new SpinnerNumberModel(1, 1,12,1));
+        this.spinner_start_year.setModel(new SpinnerNumberModel(2020, 2020,2030,1));
+
     }
+
 }
