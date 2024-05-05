@@ -1,6 +1,7 @@
 package dao;
 
 import core.DBConnection;
+import entities.Booking;
 import entities.Car;
 import entities.Model;
 
@@ -8,12 +9,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class CarDao {
     private final Connection connection;
     private final BrandDao brandDao = new BrandDao();
-    private ModelDao modelDao = new ModelDao();
+    private final ModelDao modelDao = new ModelDao();
+    private final BookingDao bookingDao = new BookingDao();
 
     public CarDao() {
         this.connection = DBConnection.getInstance();
@@ -37,6 +41,55 @@ public class CarDao {
 
     public ArrayList<Car> findAll() {
         return this.selectByQuery("SELECT * FROM public.cars ORDER BY car_id ASC");
+    }
+
+    public ArrayList<Car> searchCars(
+            String startDate,
+            String endDate,
+            Model.BodyType bodyType,
+            Model.FuelType fuelType,
+            Model.GearType gearType) {
+        String query = "SELECT * FROM public.cars as c LEFT JOIN public.models as m";
+        ArrayList<String> carTypeConditions = new ArrayList<>();
+        ArrayList<String> join = new ArrayList<>();
+        ArrayList<String> dateConditions = new ArrayList<>();
+        join.add("c.model_id = m.model_id");
+        startDate = String.valueOf(LocalDate.parse(startDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        endDate = String.valueOf(LocalDate.parse(endDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        if (bodyType != null) {
+            carTypeConditions.add("m.body_type = '" + bodyType.toString() + "'");
+        }
+        if (gearType != null) {
+            carTypeConditions.add("m.gear_type = '" + gearType.toString() + "'");
+        }
+        if (fuelType != null) {
+            carTypeConditions.add("m.fuel_type = '" + fuelType.toString() + "'");
+        }
+        String conditionStr = String.join(" AND ", carTypeConditions);
+        String joinStr = String.join(" AND ", join);
+        if (!joinStr.isEmpty()) {
+            query += " ON " + joinStr;
+        }
+        if (!conditionStr.isEmpty()) {
+            query += " WHERE " + conditionStr;
+        }
+
+        ArrayList<Car> cars = this.selectByQuery(query);
+        dateConditions.add("('" + startDate + "' BETWEEN start_date AND end_date)");
+        dateConditions.add("('" + endDate + "' BETWEEN start_date AND end_date)");
+        dateConditions.add("(start_date BETWEEN '" + startDate + "' AND '" + endDate + "')");
+        dateConditions.add("(end_date BETWEEN '" + startDate + "' AND '" + endDate + "')");
+
+        String dateQuery = "SELECT * FROM public.bookings WHERE" + String.join(" OR ", dateConditions);
+
+        System.out.println(dateQuery);
+        ArrayList<Booking> bookings = this.bookingDao.selectByQuery(dateQuery);
+        ArrayList<Integer> carIds = new ArrayList<>();
+        for (Booking booking: bookings) {
+            carIds.add(booking.getCarId());
+        }
+        cars.removeIf(car -> carIds.contains(car.getId()));
+        return cars;
     }
 
     public ArrayList<Car> getByBrandId(int brandId) {

@@ -105,4 +105,21 @@ public class Booking {
     public void setNote(String note) {
         this.note = note;
     }
+
+    @Override
+    public String toString() {
+        return "Booking{" +
+                "id=" + id +
+                ", carId=" + carId +
+                ", car=" + car +
+                ", customerName='" + customerName + '\'' +
+                ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", price=" + price +
+                ", status='" + status + '\'' +
+                ", note='" + note + '\'' +
+                '}';
+    }
 }

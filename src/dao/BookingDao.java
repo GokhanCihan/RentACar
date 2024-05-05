@@ -4,15 +4,14 @@ import core.DBConnection;
 import entities.Booking;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class BookingDao {
     private Connection connection;
-    private final CarDao carDao;
 
     public BookingDao() {
         this.connection = DBConnection.getInstance();
-        this.carDao = new CarDao();
     }
 
     public ArrayList<Booking> selectByQuery(String query) {
@@ -48,7 +47,7 @@ public class BookingDao {
             PreparedStatement preparedStatement = this.connection.prepareStatement(query);
             preparedStatement.setInt(1, booking.getCarId());
             preparedStatement.setString(2, booking.getCustomerName());
-            preparedStatement.setString(3, booking.getPhone());
+            preparedStatement.setInt(3, Integer.parseInt(booking.getPhone()));
             preparedStatement.setString(4, booking.getEmail());
             preparedStatement.setDate(5, Date.valueOf(booking.getStartDate()));
             preparedStatement.setDate(6, Date.valueOf(booking.getEndDate()));
@@ -112,8 +111,8 @@ public class BookingDao {
             booking.setCustomerName(resultSet.getString("name"));
             booking.setPhone(resultSet.getString("phone"));
             booking.setEmail(resultSet.getString("email"));
-            booking.setStartDate(resultSet.getDate("start_date").toLocalDate());
-            booking.setStartDate(resultSet.getDate("end_date").toLocalDate());
+            booking.setStartDate(LocalDate.parse(resultSet.getString("start_date")));
+            booking.setStartDate(LocalDate.parse(resultSet.getString("end_date")));
             booking.setPrice(resultSet.getInt("price"));
             booking.setStatus(resultSet.getString("status"));
             booking.setNote(resultSet.getString("note"));

@@ -13,9 +13,29 @@ public class BookingManager {
         this.bookingDao = new BookingDao();
     }
 
-    public ArrayList<Object[]> getRowsForTable(int size) {
+    public ArrayList<Object[]> tableRows(int size) {
         ArrayList<Object[]> rows = new ArrayList<>();
         for (Booking booking : this.findAll()) {
+            Object[] rowObject = new Object[size];
+            int i = 0;
+            rowObject[i++] = booking.getId();
+            rowObject[i++] = booking.getCarId();
+            rowObject[i++] = booking.getCustomerName();
+            rowObject[i++] = booking.getPhone();
+            rowObject[i++] = booking.getEmail();
+            rowObject[i++] = booking.getStartDate();
+            rowObject[i++] = booking.getEndDate();
+            rowObject[i++] = booking.getPrice();
+            rowObject[i++] = booking.getStatus();
+            rowObject[i++] = booking.getNote();
+            rows.add(rowObject);
+        }
+        return rows;
+    }
+
+    public ArrayList<Object[]> filteredTableRows(int size, ArrayList<Booking> bookings) {
+        ArrayList<Object[]> rows = new ArrayList<>();
+        for (Booking booking : bookings) {
             Object[] rowObject = new Object[size];
             int i = 0;
             rowObject[i++] = booking.getId();

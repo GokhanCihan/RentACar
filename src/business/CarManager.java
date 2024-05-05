@@ -3,6 +3,7 @@ package business;
 import core.Helper;
 import dao.CarDao;
 import entities.Car;
+import entities.Model;
 
 import java.util.ArrayList;
 
@@ -21,6 +22,15 @@ public class CarManager {
         return carDao.findAll();
     }
 
+    public ArrayList<Car> searchCars(
+            String start_date,
+            String end_date,
+            Model.BodyType bodyType,
+            Model.FuelType fuelType,
+            Model.GearType gearType) {
+        return this.carDao.searchCars(start_date, end_date, bodyType, fuelType, gearType);
+    }
+
     public ArrayList<Car> getByBrandId(int brandId) {
         return carDao.getByBrandId(brandId);
     }
@@ -29,9 +39,9 @@ public class CarManager {
         return carDao.getByModelId(modelId);
     }
 
-    public ArrayList<Object[]> getRowsForTable(int size) {
+    public ArrayList<Object[]> getRowsForTable(int size, ArrayList<Car> cars) {
         ArrayList<Object[]> rows = new ArrayList<>();
-        for (Car car: this.findAll()) {
+        for (Car car : cars) {
             int i = 0;
             Object[] rowObject = new Object[size];
             rowObject[i++] = car.getId();
@@ -57,11 +67,12 @@ public class CarManager {
         return this.carDao.update(car);
     }
 
-    public boolean delete(int id){
+    public boolean delete(int id) {
         if (this.getById(id) == null) {
             Helper.showDialog("notFound");
             return false;
         }
         return this.carDao.delete(id);
     }
+
 }

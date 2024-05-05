@@ -9,10 +9,10 @@ import entities.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.MaskFormatter;
 import java.awt.event.*;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 
 public class AdminView extends ViewLayout {
     private JPanel container;
@@ -43,16 +43,14 @@ public class AdminView extends ViewLayout {
     private JPanel panel_booking;
     private JScrollPane scroll_pane_booking;
     private JTable table_booking;
+    private JComboBox<Model.BodyType> bodyComboBox;
+    private JComboBox<Model.FuelType> fuelComboBox;
+    private JComboBox<Model.GearType> gearComboBox;
+    private JButton filterButton;
+    private JButton resetButton;
     private JPanel container_filter_booking;
-    private JComboBox<Model.BodyType> cbox_body_type;
-    private JComboBox<Model.FuelType> cbox_fuel_type;
-    private JComboBox<Model.GearType> cbox_gear_type;
-    private JSpinner spinner_start_day;
-    private JSpinner spinner_end_day;
-    private JSpinner spinner_start_month;
-    private JSpinner spinner_start_year;
-    private JSpinner spinner_end_month;
-    private JSpinner spinner_end_year;
+    private JFormattedTextField startDateFormattedTextField;
+    private JFormattedTextField endDateFormattedTextField;
     private final User user;
     private final DefaultTableModel table_model_brand = new DefaultTableModel();
     private final DefaultTableModel table_model_model = new DefaultTableModel();
@@ -66,7 +64,7 @@ public class AdminView extends ViewLayout {
     private final JPopupMenu popup_menu_models = new JPopupMenu();
     private final JPopupMenu popup_menu_cars = new JPopupMenu();
     private final JPopupMenu popup_menu_bookings = new JPopupMenu();
-    private  ArrayList<Model> models;
+    private ArrayList<Model> models;
 
     public AdminView(User user) {
         this.add(container);
@@ -86,32 +84,31 @@ public class AdminView extends ViewLayout {
         loadCarsTable();
         loadBookingTable();
 
-        configureBookingFilters();
+        configureCarFilters();
+        listenCarFilters();
     }
 
     private void loadBrandsTable() {
-        Object[] columns = {"Brand ID", "Brand Name"};
+        Object[] columns = brandColumns();
         ArrayList<Object[]> brands = this.brandManager.getRowsForTable(columns.length);
         this.createTable(this.table_model_brand, this.table_brands, columns, brands);
     }
 
     private void loadModelsTable() {
-        Object[] columns = {"Model ID", "Brand", "Model", "Release Year", "Body Type", "Fuel Type", "Gear Type"};
+        Object[] columns = modelColumnIdentifiers();
         ArrayList<Object[]> rows = this.modelManager.getRowsForTable(columns.length);
         this.createTable(this.table_model_model, this.table_models, columns, rows);
     }
 
     private void loadCarsTable() {
-        Object[] columns = {"ID", "Brand", "Model", "Plate", "Color", "Mileage (km)", "Release Year",
-                "Body Type", "Fuel Type", "Gear Type"};
-        ArrayList<Object[]> rows = this.carManager.getRowsForTable(columns.length);
+        Object[] columns = carColumnIdentifiers();
+        ArrayList<Object[]> rows = this.carManager.getRowsForTable(columns.length, carManager.findAll());
         this.createTable(this.table_model_car, this.table_cars, columns, rows);
     }
 
     private void loadBookingTable() {
-        Object[] columns = {"ID", "Car", "Customer", "Phone", "Email", "Start Date", "End Date",
-                "Price", "Status", "Notes"};
-        ArrayList<Object[]> rows = this.bookingManager.getRowsForTable(columns.length);
+        Object[] columns = bookingColumnIdentifiers();
+        ArrayList<Object[]> rows = this.bookingManager.tableRows(columns.length);
         this.createTable(this.table_model_booking, this.table_booking, columns, rows);
     }
 
@@ -213,6 +210,22 @@ public class AdminView extends ViewLayout {
                 }
             });
         });
+        this.popup_menu_cars.add("create reservation").addActionListener(e -> {
+            int selectedId = this.getIdAtSelectedRow(table_cars, 0);
+            BookingView bookingView = new BookingView(
+                    this.carManager.getById(selectedId),
+                    this.startDateFormattedTextField.getText(),
+                    this.endDateFormattedTextField.getText(),
+                    e.getActionCommand()
+            );
+            bookingView.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    loadCarsTable();
+                    loadBookingTable();
+                }
+            });
+        });
         this.popup_menu_cars.add("Delete").addActionListener(e -> {
             if (Helper.confirmDelete()) {
                 int selectedId = getIdAtSelectedRow(table_cars, 0);
@@ -229,31 +242,6 @@ public class AdminView extends ViewLayout {
 
     private void configureBookingsPanel() {
         this.listenRowSelection(table_booking);
-        this.popup_menu_bookings.add("Add").addActionListener(e -> {
-            BookingView bookingView = new BookingView(new Booking(), e.getActionCommand());
-            bookingView.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent e) {
-                    loadBrandsTable();
-                    loadModelsTable();
-                    loadCarsTable();
-                    loadBookingTable();
-                }
-            });
-        });
-        this.popup_menu_bookings.add("Edit").addActionListener(e -> {
-            int selectedId = this.getIdAtSelectedRow(table_booking, 0);
-            BookingView bookingView = new BookingView(this.bookingManager.getById(selectedId), e.getActionCommand());
-            bookingView.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent e) {
-                    loadBrandsTable();
-                    loadModelsTable();
-                    loadCarsTable();
-                    loadBookingTable();
-                }
-            });
-        });
         this.popup_menu_bookings.add("Delete").addActionListener(e -> {
             if (Helper.confirmDelete()) {
                 int selectedId = getIdAtSelectedRow(table_booking, 0);
@@ -283,22 +271,65 @@ public class AdminView extends ViewLayout {
             String fuelType = cbox_filter_fuel.getModel().getSelectedItem().toString();
             String gearType = cbox_filter_gear.getModel().getSelectedItem().toString();
             this.models = this.modelManager.filterModels(selectedId, bodyType, fuelType, gearType);
-            Object[] columns = {"Model ID", "Brand", "Model", "Release Year", "Body Type", "Fuel Type", "Gear Type"};
+            Object[] columns = modelColumnIdentifiers();
             ArrayList<Object[]> rows = this.modelManager.getUpdatedRowsForTable(columns.length, this.models);
             this.createTable(this.table_model_model, this.table_models, columns, rows);
         });
         this.button_reset.addActionListener(e -> {
-           loadModelsTable();
+            loadModelsTable();
         });
     }
 
-    private void configureBookingFilters() {
-
-        this.spinner_start_day.setModel(new SpinnerDateModel());
-        this.spinner_start_day.setEditor(new JSpinner.DateEditor(this.spinner_end_day,"dd.MM.yyyy"));
-        this.spinner_start_month.setModel(new SpinnerNumberModel(1, 1,12,1));
-        this.spinner_start_year.setModel(new SpinnerNumberModel(2020, 2020,2030,1));
-
+    private void configureCarFilters() {
+        this.bodyComboBox.setModel(new DefaultComboBoxModel<>(Model.BodyType.values()));
+        this.bodyComboBox.setSelectedItem(null);
+        this.fuelComboBox.setModel(new DefaultComboBoxModel<>(Model.FuelType.values()));
+        this.fuelComboBox.setSelectedItem(null);
+        this.gearComboBox.setModel(new DefaultComboBoxModel<>(Model.GearType.values()));
+        this.gearComboBox.setSelectedItem(null);
     }
+
+    private void listenCarFilters() {
+        filterButton.addActionListener(e -> {
+            ArrayList<Car> cars = this.carManager.searchCars(
+                    startDateFormattedTextField.getText(),
+                    endDateFormattedTextField.getText(),
+                    (Model.BodyType) bodyComboBox.getSelectedItem(),
+                    (Model.FuelType) fuelComboBox.getSelectedItem(),
+                    (Model.GearType) gearComboBox.getSelectedItem()
+            );
+            ArrayList<Object[]> rows = this.carManager.getRowsForTable(carColumnIdentifiers().length, cars);
+            this.createTable(this.table_model_car, this.table_cars, carColumnIdentifiers(), rows);
+        });
+        resetButton.addActionListener(e -> {
+            loadCarsTable();
+        });
+    }
+
+    private static Object[] carColumnIdentifiers() {
+        return new Object[]{"ID", "Brand", "Model", "Plate", "Color", "Mileage (km)", "Release Year",
+                "Body Type", "Fuel Type", "Gear Type"};
+    }
+
+    private static Object[] brandColumns() {
+        return new Object[]{"Brand ID", "Brand Name"};
+    }
+
+    private static Object[] modelColumnIdentifiers() {
+        return new Object[]{"Model ID", "Brand", "Model", "Release Year", "Body Type", "Fuel Type", "Gear Type"};
+    }
+
+    private static Object[] bookingColumnIdentifiers() {
+        return new Object[]{"ID", "Car", "Customer", "Phone", "Email", "Start Date", "End Date",
+                "Price", "Status", "Notes"};
+    }
+
+    private void createUIComponents() throws ParseException {
+        startDateFormattedTextField = new JFormattedTextField(new MaskFormatter("##/##/####"));
+        startDateFormattedTextField.setText("01/04/2024");
+        endDateFormattedTextField = new JFormattedTextField(new MaskFormatter("##/##/####"));
+        endDateFormattedTextField.setText("11/04/2024");
+    }
+
 
 }
